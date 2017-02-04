@@ -25,10 +25,10 @@ type (
 	// memory session store.
 	// it saved sessions in a map in memory.
 	TStore struct {
-		sid          string                      //session id
-		timeAccessed time.Time                   //last access time
-		value        map[interface{}]interface{} //session store
-		lock         sync.RWMutex
+		sid string //session id
+		//timeAccessed time.Time                   //last access time
+		value map[interface{}]interface{} //session store
+		lock  sync.RWMutex
 	}
 
 	// 提供存储Session列表
@@ -123,7 +123,7 @@ func (self *TSessionManager) Set(cacher, id, key string, val interface{}) {
 		if store, ok := ck.Get(id).(*TStore); ok && store != nil {
 			store.Write(key, val)
 		} else {
-			store = &TStore{sid: id, timeAccessed: time.Now(), value: make(map[interface{}]interface{})}
+			store = &TStore{sid: id, value: make(map[interface{}]interface{})}
 			store.Write(key, val)
 
 			ck.Put(id, store)
@@ -486,4 +486,10 @@ func NewSession(config string, cacher ...cache.ICacher) *TSession {
 	}
 
 	return lSessions
+}
+
+func NewStore() *TStore {
+	return &TStore{
+		value: make(map[interface{}]interface{}),
+	}
 }
