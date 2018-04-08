@@ -11,7 +11,8 @@ import (
 	"os"
 	"runtime/pprof"
 	"testing"
-	"webgo"
+
+	"github.com/VectorsOrigin/web"
 )
 
 type TAction struct {
@@ -19,15 +20,15 @@ type TAction struct {
 	//Id string
 }
 
-func (action TAction) Get(hd *webgo.THandler) {
+func (action TAction) Get(hd *web.THandler) {
 	hd.RespondString("Get")
 }
 
-func (action TAction) Before(hd *webgo.THandler) {
+func (action TAction) Before(hd *web.THandler) {
 	hd.RespondString("Before")
 }
 
-func (action TAction) After(hd *webgo.THandler) {
+func (action TAction) After(hd *web.THandler) {
 	hd.Logger.Info("After")
 }
 
@@ -35,7 +36,7 @@ func TestSession(t *testing.T) {
 	f, _ := os.Create("profile_file")
 	pprof.StartCPUProfile(f)     // 开始cpu profile，结果写到文件f中
 	defer pprof.StopCPUProfile() // 结束profile
-	r2 := webgo.NewServer("")
+	r2 := web.NewServer("")
 	r2.Url("/", TAction.Get)
 	r2.RegisterMiddleware(NewEvent())
 	go r2.Listen()

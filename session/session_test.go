@@ -6,13 +6,11 @@ package session
 
 import (
 	"time"
-	//	"bytes"
-	//	"net/http"
-	//	"net/http/httptest"
 	//"reflect"
 	"testing"
-	"webgo"
-	"webgo/cache"
+
+	"github.com/VectorsOrigin/cacher"
+	"github.com/VectorsOrigin/web"
 )
 
 type SessionAction struct {
@@ -20,11 +18,11 @@ type SessionAction struct {
 	Id      string
 }
 
-func (action SessionAction) Get(hd *webgo.THandler) {
-	//webgo.Warn("Get", action.Session, action.Session == nil, reflect.ValueOf(action.Session))
-	//webgo.Warn("Get", reflect.ValueOf(action.Session).Interface().(*TMemorySession))
-	//webgo.Warn("Get", action.Id)
-	//webgo.Warn("Get", action.Session.Id())
+func (action SessionAction) Get(hd *web.THandler) {
+	//web.Warn("Get", action.Session, action.Session == nil, reflect.ValueOf(action.Session))
+	//web.Warn("Get", reflect.ValueOf(action.Session).Interface().(*TMemorySession))
+	//web.Warn("Get", action.Id)
+	//web.Warn("Get", action.Session.Id())
 	action.Session.Set("aa", action.Session.Id())
 	//ss := reflect.ValueOf(action.Session).Interface().(*TMemorySession)
 	hd.RespondString(action.Session.Get("aa").(string))
@@ -32,7 +30,7 @@ func (action SessionAction) Get(hd *webgo.THandler) {
 }
 
 func TestSession(t *testing.T) {
-	r2 := webgo.NewServer("")
+	r2 := web.NewServer("")
 	r2.Url("/", SessionAction.Get)
 	ck, _ := cache.NewCacher("memory", `{"interval":5,"expired":30}`)
 	r2.RegisterMiddleware(

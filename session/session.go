@@ -15,10 +15,11 @@ import (
 	//	"strings"
 	"sync"
 	"time"
-	"webgo"
-	"webgo/cache"
-	"webgo/logger"
-	"webgo/utils"
+
+	"github.com/VectorsOrigin/cacher"
+	"github.com/VectorsOrigin/logger"
+	"github.com/VectorsOrigin/utils"
+	"github.com/VectorsOrigin/web"
 )
 
 type (
@@ -298,7 +299,7 @@ func (self *TSessionManager) new_id(r *http.Request) (RSid string) {
 // Start session. generate or read the session id from http request.
 // if session id exists, return SessionStore with this id.
 */
-func (self *TSession) Request(act interface{}, hd *webgo.THandler) {
+func (self *TSession) Request(act interface{}, hd *web.THandler) {
 	var lSessionId string
 	lCookie, err := hd.Request.Cookie(self.manager.CookieName)
 	//fmt.Println("config.CookieName", lCookie, err)
@@ -319,11 +320,11 @@ func (self *TSession) Request(act interface{}, hd *webgo.THandler) {
 	return
 }
 
-func (self *TSession) Response(act interface{}, hd *webgo.THandler) {
+func (self *TSession) Response(act interface{}, hd *web.THandler) {
 
 }
 
-func (self *TSession) Panic(act interface{}, hd *webgo.THandler) {
+func (self *TSession) Panic(act interface{}, hd *web.THandler) {
 
 }
 

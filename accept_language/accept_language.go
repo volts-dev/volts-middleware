@@ -4,8 +4,9 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"webgo"
-	"webgo/utils"
+
+	"github.com/VectorsOrigin/utils"
+	"github.com/VectorsOrigin/web"
 )
 
 type (
@@ -24,7 +25,7 @@ func NewAcceptLanguage() *TAcceptLanguage {
 	return &TAcceptLanguage{}
 }
 
-func (self *TAcceptLanguage) NearestLang(hd *webgo.THandler) string {
+func (self *TAcceptLanguage) NearestLang(hd *web.THandler) string {
 	header := hd.Request.Header.Get("Accept-Language")
 	if header != "" {
 		acceptLanguageHeaderValues := strings.Split(header, ",")
@@ -54,11 +55,11 @@ func (self *TAcceptLanguage) NearestLang(hd *webgo.THandler) string {
 	}
 }
 
-func (self *TAcceptLanguage) Request(act interface{}, hd *webgo.THandler) {
+func (self *TAcceptLanguage) Request(act interface{}, hd *web.THandler) {
 }
 
-func (self *TAcceptLanguage) Response(act interface{}, hd *webgo.THandler) {
+func (self *TAcceptLanguage) Response(act interface{}, hd *web.THandler) {
 }
 
-func (self *TAcceptLanguage) Panic(act interface{}, hd *webgo.THandler) {
+func (self *TAcceptLanguage) Panic(act interface{}, hd *web.THandler) {
 }

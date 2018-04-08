@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"time"
 
-	"webgo/utils"
+	"vectors/utils"
 )
 
 func init() {
