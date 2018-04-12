@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"time"
 
-	"vectors/utils"
+	"github.com/VectorsOrigin/utils"
 )
 
 func init() {
