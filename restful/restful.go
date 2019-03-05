@@ -1,14 +1,10 @@
-package event
+package restful
 
 import (
 	"vectors/volts/server"
 )
 
 type (
-	Init interface {
-		Init(*server.TRouter)
-	}
-
 	WebBefore interface {
 		Before(hd *server.TWebHandler)
 	}
