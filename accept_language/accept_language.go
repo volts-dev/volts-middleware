@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/VectorsOrigin/utils"
-	"github.com/VectorsOrigin/web"
+	"github.com/volts-dev/utils"
+	"github.com/volts-dev/volts/server"
 )
 
 type (
@@ -25,7 +25,7 @@ func NewAcceptLanguage() *TAcceptLanguage {
 	return &TAcceptLanguage{}
 }
 
-func (self *TAcceptLanguage) NearestLang(hd *web.THandler) string {
+func (self *TAcceptLanguage) NearestLang(hd *server.TWebHandler) string {
 	header := hd.Request.Header.Get("Accept-Language")
 	if header != "" {
 		acceptLanguageHeaderValues := strings.Split(header, ",")
@@ -55,11 +55,11 @@ func (self *TAcceptLanguage) NearestLang(hd *web.THandler) string {
 	}
 }
 
-func (self *TAcceptLanguage) Request(act interface{}, hd *web.THandler) {
+func (self *TAcceptLanguage) Request(act interface{}, hd *server.TWebHandler) {
 }
 
-func (self *TAcceptLanguage) Response(act interface{}, hd *web.THandler) {
+func (self *TAcceptLanguage) Response(act interface{}, hd *server.TWebHandler) {
 }
 
-func (self *TAcceptLanguage) Panic(act interface{}, hd *web.THandler) {
+func (self *TAcceptLanguage) Panic(act interface{}, hd *server.TWebHandler) {
 }

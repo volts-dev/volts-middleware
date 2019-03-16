@@ -12,14 +12,15 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+
 	//	"strings"
 	"sync"
 	"time"
 
-	"github.com/VectorsOrigin/cacher"
-	"github.com/VectorsOrigin/logger"
-	"github.com/VectorsOrigin/utils"
-	"github.com/VectorsOrigin/web"
+	"github.com/volts-dev/cacher"
+	"github.com/volts-dev/logger"
+	"github.com/volts-dev/utils"
+	"github.com/volts-dev/volts/server"
 )
 
 type (
@@ -299,19 +300,19 @@ func (self *TSessionManager) new_id(r *http.Request) (RSid string) {
 // Start session. generate or read the session id from http request.
 // if session id exists, return SessionStore with this id.
 */
-func (self *TSession) Request(act interface{}, hd *web.THandler) {
+func (self *TSession) Request(act interface{}, hd *server.TWebHandler) {
 	var lSessionId string
-	lCookie, err := hd.Request.Cookie(self.manager.CookieName)
+	lCookie, err := hd.Request().Cookie(self.manager.CookieName)
 	//fmt.Println("config.CookieName", lCookie, err)
 	// 当无session的cookie新建一个
 	if err != nil || lCookie.Value == "" {
-		lSessionId = self.manager.new_session(hd.Request, hd.Response)
+		lSessionId = self.manager.new_session(hd.Request(), hd.Response())
 	} else {
 		//fmt.Println("config.CookieName", lCookie.Name, lCookie.Value)
 		lSessionId, _ = url.QueryUnescape(lCookie.Value)
 
 		if !self.manager.contains(lSessionId) {
-			lSessionId = self.manager.new_session(hd.Request, hd.Response)
+			lSessionId = self.manager.new_session(hd.Request(), hd.Response())
 		}
 	}
 
@@ -320,11 +321,11 @@ func (self *TSession) Request(act interface{}, hd *web.THandler) {
 	return
 }
 
-func (self *TSession) Response(act interface{}, hd *web.THandler) {
+func (self *TSession) Response(act interface{}, hd *server.TWebHandler) {
 
 }
 
-func (self *TSession) Panic(act interface{}, hd *web.THandler) {
+func (self *TSession) Panic(act interface{}, hd *server.TWebHandler) {
 
 }
 

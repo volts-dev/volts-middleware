@@ -9,8 +9,8 @@ import (
 	//"reflect"
 	"testing"
 
-	"github.com/VectorsOrigin/cacher"
-	"github.com/VectorsOrigin/web"
+	"github.com/volts-dev/cacher"
+	"github.com/volts-dev/volts/server"
 )
 
 type SessionAction struct {
@@ -18,7 +18,7 @@ type SessionAction struct {
 	Id      string
 }
 
-func (action SessionAction) Get(hd *web.THandler) {
+func (action SessionAction) Get(hd *server.TWebHandler) {
 	//web.Warn("Get", action.Session, action.Session == nil, reflect.ValueOf(action.Session))
 	//web.Warn("Get", reflect.ValueOf(action.Session).Interface().(*TMemorySession))
 	//web.Warn("Get", action.Id)

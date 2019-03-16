@@ -12,7 +12,7 @@ import (
 	"runtime/pprof"
 	"testing"
 
-	"github.com/VectorsOrigin/web"
+	"github.com/volts-dev/volts/server"
 )
 
 type TAction struct {
@@ -20,15 +20,15 @@ type TAction struct {
 	//Id string
 }
 
-func (action TAction) Get(hd *web.THandler) {
+func (action TAction) Get(hd *server.TWebHandler) {
 	hd.RespondString("Get")
 }
 
-func (action TAction) Before(hd *web.THandler) {
+func (action TAction) Before(hd *server.TWebHandler) {
 	hd.RespondString("Before")
 }
 
-func (action TAction) After(hd *web.THandler) {
+func (action TAction) After(hd *server.TWebHandler) {
 	hd.Logger.Info("After")
 }
 

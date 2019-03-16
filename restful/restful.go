@@ -1,7 +1,7 @@
 package restful
 
 import (
-	"vectors/volts/server"
+	"github.com/volts-dev/volts/server"
 )
 
 type (

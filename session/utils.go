@@ -15,7 +15,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/VectorsOrigin/utils"
+	"github.com/volts-dev/utils"
 )
 
 func init() {

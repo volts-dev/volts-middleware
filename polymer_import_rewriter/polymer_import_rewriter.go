@@ -1,7 +1,7 @@
 package polymer_import_rewrite
 
 import (
-	"vectors/volts/server"
+	"github.com/volts-dev/volts/server"
 )
 
 type (
