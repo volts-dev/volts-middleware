@@ -26,7 +26,7 @@ func NewAcceptLanguage() *TAcceptLanguage {
 }
 
 func (self *TAcceptLanguage) NearestLang(hd *server.TWebHandler) string {
-	header := hd.Request.Header.Get("Accept-Language")
+	header := hd.Request().Header.Get("Accept-Language")
 	if header != "" {
 		acceptLanguageHeaderValues := strings.Split(header, ",")
 		acceptLanguages := make(AcceptLanguages, len(acceptLanguageHeaderValues))
