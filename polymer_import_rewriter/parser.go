@@ -7,7 +7,8 @@ import (
 	"io"
 	"os"
 	"strings"
-	"vectors/lexer"
+
+	"github.com/volts-dev/lexer"
 )
 
 type (
