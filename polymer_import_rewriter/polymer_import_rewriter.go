@@ -1,7 +1,10 @@
 package polymer_import_rewrite
 
 import (
+	"bytes"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/volts-dev/volts/server"
 )
@@ -29,7 +32,7 @@ func PolymerServe(root string, hd *server.TWebHandler) {
 	}
 
 	if ext == "js" || ext == "ts" {
-		p := pir.NewParser()
+		p := NewParser()
 		p.SetRoot(root)
 		p.SetPath(path)
 		p.Parse(osfile)
