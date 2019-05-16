@@ -12,20 +12,25 @@ import (
 )
 
 type (
-	iParser struct {
+	parser struct {
 		lexer          *lexer.TLexer
 		pos            int // the pos of token
 		tokens         []*lexer.TToken
-		root           string // root dir
+		root           string // the name of root dir but not path
 		path           string
 		buffer         bytes.Buffer
 		in_node_module bool // is it in node_modules
-		in_same_module bool
+		in_same_module bool // is it in same modules
 	}
 )
 
+// #新建解析器可以独立于TTemplate使用
+func NewParser() *parser {
+	return &parser{}
+}
+
 // Returns tokens[i] or NIL (if i >= len(tokens))
-func (p *iParser) get(i int) *lexer.TToken {
+func (p *parser) get(i int) *lexer.TToken {
 	if i < len(p.tokens) {
 		//fmt.Println("Get", i, p.tokens[i])
 		return p.tokens[i]
@@ -34,29 +39,29 @@ func (p *iParser) get(i int) *lexer.TToken {
 }
 
 // Consume one token. It will be gone forever.
-func (p *iParser) next() {
+func (p *parser) next() {
 	p.nextn(1)
 }
 
 // Consume N tokens. They will be gone forever.
-func (p *iParser) nextn(count int) {
+func (p *parser) nextn(count int) {
 	p.pos += count
 }
 
 // Returns the UNCONSUMED token count.
-func (p *iParser) remaining() int {
+func (p *parser) remaining() int {
 	return len(p.tokens) - p.pos
 }
 
 // Returns the current token.
-func (p *iParser) current() *lexer.TToken {
+func (p *parser) current() *lexer.TToken {
 	return p.get(p.pos)
 }
 
-func (p iParser) Buffer() bytes.Buffer {
+func (p parser) Buffer() bytes.Buffer {
 	return p.buffer
 }
-func (p *iParser) writeToBuf() {
+func (p *parser) writeToBuf() {
 	for _, t := range p.tokens {
 		p.buffer.WriteString(t.Val)
 	}
@@ -65,7 +70,7 @@ func (p *iParser) writeToBuf() {
 }
 
 // Returns the current token.
-func (p *iParser) rest() {
+func (p *parser) rest() {
 	p.pos = 0
 	p.in_node_module = false
 	p.in_same_module = false
@@ -73,30 +78,30 @@ func (p *iParser) rest() {
 }
 
 // set the root dir name for reference
-func (p *iParser) SetRoot(dir string) {
+func (p *parser) SetRoot(dir string) {
 	p.root = dir
 }
 
 // set the file full path for reference
-func (p *iParser) SetPath(path string) {
+func (p *parser) SetPath(path string) {
 	p.path = path
 }
 
 // Returns the prior token.
-func (p *iParser) __Prior() *lexer.TToken {
+func (p *parser) __Prior() *lexer.TToken {
 	return p.get(p.pos - 1)
 }
 
 // Returns the CURRENT token if the given type AND value matches.
 // It DOES NOT consume the token.
-func (p *iParser) peek(typ int, val string) *lexer.TToken {
+func (p *parser) peek(typ int, val string) *lexer.TToken {
 	return p.peekN(0, typ, val)
 }
 
 // Returns the tokens[current position + shift] token if the
 // given type AND value matches for that token.
 // DOES NOT consume the token.
-func (p *iParser) peekN(shift int, typ int, val string) *lexer.TToken {
+func (p *parser) peekN(shift int, typ int, val string) *lexer.TToken {
 	t := p.get(p.pos + shift)
 	if t != nil {
 		//fmt.Println("PeekN", t)
@@ -109,13 +114,13 @@ func (p *iParser) peekN(shift int, typ int, val string) *lexer.TToken {
 
 // Returns the CURRENT token if the given type matches.
 // It DOES NOT consume the token.
-func (p *iParser) peekType(typ ...int) *lexer.TToken {
+func (p *parser) peekType(typ ...int) *lexer.TToken {
 	return p.peekTypeN(0, typ...)
 }
 
 // Returns the tokens[current position + shift] token if the given type matches.
 // DOES NOT consume the token for that token.
-func (p *iParser) peekTypeN(shift int, typ ...int) *lexer.TToken {
+func (p *parser) peekTypeN(shift int, typ ...int) *lexer.TToken {
 	t := p.get(p.pos + shift)
 	if t != nil {
 		if t.Type == lexer.SEMICOLON {
@@ -131,7 +136,7 @@ func (p *iParser) peekTypeN(shift int, typ ...int) *lexer.TToken {
 	return nil
 }
 
-func (p *iParser) __skipWhitespace() {
+func (p *parser) __skipWhitespace() {
 	for {
 		if p.current().Type != lexer.SAPCE {
 			return
@@ -143,7 +148,7 @@ func (p *iParser) __skipWhitespace() {
 	return
 }
 
-func (self *iParser) replace_import() {
+func (self *parser) replace_import() {
 	for self.remaining() > 0 {
 		t := self.peekType(lexer.STRING)
 		if t != nil {
@@ -152,19 +157,19 @@ func (self *iParser) replace_import() {
 			if self.path[0] == '/' {
 				self.path = self.path[1:]
 			}
-			strs := strings.Split(self.path, "/")
-			md_name := strings.Split(t.Val, "/")[0]
-			//fmt.Println("impt", self.in_node_module, md_name, t.Line)
-			// only @ and . will be changed
-			if md_name[0] == '@' {
-				if strings.Index(self.path, md_name) > -1 {
+			strs := strings.Split(self.path, "/")    // full url path without host
+			pkg_name := strings.Split(t.Val, "/")[0] // package name
+			//fmt.Println("impt", self.in_node_module, pkg_name, t.Line)
+			// only @ and not . will be changed
+			if pkg_name[0] == '@' || pkg_name[0] != '.' {
+				if strings.Index(self.path, pkg_name) > -1 {
 					self.in_same_module = true
 				}
 				var ext string
 				var cnt int
 				if self.in_node_module && self.in_same_module {
 					for i, str := range strs {
-						if str == md_name {
+						if str == pkg_name {
 							cnt = len(strs) - i - 2
 							//fmt.Println("str1", len(strs), strs, i, cnt)
 
@@ -177,7 +182,7 @@ func (self *iParser) replace_import() {
 					}
 
 					ext = strings.Repeat("../", cnt)
-					t.Val = strings.Replace(t.Val, md_name+"/", ext, -1)
+					t.Val = strings.Replace(t.Val, pkg_name+"/", ext, -1)
 
 				} else if self.in_node_module {
 					for i, str := range strs {
@@ -197,7 +202,7 @@ func (self *iParser) replace_import() {
 					ext = strings.Repeat("../", cnt)
 					t.Val = ext + t.Val
 
-					//t.Val = strings.Replace(t.Val, md_name+"//", ext, -1)
+					//t.Val = strings.Replace(t.Val, pkg_name+"//", ext, -1)
 				} else {
 					for i, str := range strs {
 						if str == self.root {
@@ -221,7 +226,7 @@ func (self *iParser) replace_import() {
 				}
 			}
 
-			if md_name[0] == '.' {
+			if pkg_name[0] == '.' {
 				if !strings.HasSuffix(t.Val, ".js") {
 					t.Val = t.Val + ".js"
 				}
@@ -236,7 +241,7 @@ func (self *iParser) replace_import() {
 
 }
 
-func (self *iParser) parse() {
+func (self *parser) parse() {
 	if strings.Index(self.path, "node_modules") > -1 {
 		self.in_node_module = true
 	}
@@ -264,13 +269,13 @@ func (self *iParser) parse() {
 		}
 	*/
 }
-func (self *iParser) Parse(input io.Reader) {
+func (self *parser) Parse(input io.Reader) {
 	// new the line scanner
 	scanner := bufio.NewScanner(input)
 	for scanner.Scan() {
 		t := scanner.Text()
 
-		// resolve the import line
+		// only resolve the import line
 		t = strings.TrimLeft(t, " ")
 		if strings.HasPrefix(t, "import") {
 			self.rest()
@@ -302,9 +307,4 @@ func (self *iParser) Parse(input io.Reader) {
 	}
 
 	//fmt.Println(self.buffer.String())
-}
-
-// #新建解析器可以独立于TTemplate使用
-func NewParser() *iParser {
-	return &iParser{}
 }

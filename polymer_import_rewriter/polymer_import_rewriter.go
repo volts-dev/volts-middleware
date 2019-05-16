@@ -1,30 +1,42 @@
 package polymer_import_rewrite
 
 import (
+	"net/http"
+
 	"github.com/volts-dev/volts/server"
 )
 
-type (
-	TPolymerImport struct{}
-)
+// root : the dir name of app project
+func PolymerServe(root string, hd *server.TWebHandler) {
+	p := hd.PathParams()
+	ext := p.AsString("ext")
 
-func (self *TPolymerImport) Response(act interface{}, route *server.TController) {
-	if act != nil {
-		/*
-			web := route.GetHttpHandler()
-			path := web.Request().URL.Path
+	path := hd.Request().URL.Path
+	file_path := filepath.Join(
+		server.MODULE_DIR, // c:\project\Modules
+		path)
+	osfile, e := os.Open(file_path)
+	if e != nil {
+		hd.Abort(404, e.Error())
+		return
+	}
+	defer osfile.Close()
 
-			finfo, err := os.Stat(path)
-			if err != nil {
-				http.NotFound(ctx.ResponseWriter, ctx.Request)
-				return
-			}
+	info, e := osfile.Stat()
+	if e != nil {
+		hd.Abort(404, e.Error())
+		return
+	}
 
-			osfile, e := os.Open(path)
-			if e != nil {
-				return nil, e
-			}
-			defer osfile.Close()
-		*/
+	if ext == "js" || ext == "ts" {
+		p := pir.NewParser()
+		p.SetRoot(root)
+		p.SetPath(path)
+		p.Parse(osfile)
+
+		buf := p.Buffer()
+		http.ServeContent(hd.Response(), hd.Request(), info.Name(), info.ModTime(), bytes.NewReader(buf.Bytes()))
+	} else {
+		http.ServeContent(hd.Response(), hd.Request(), info.Name(), info.ModTime(), osfile)
 	}
 }
