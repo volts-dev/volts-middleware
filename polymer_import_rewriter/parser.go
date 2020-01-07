@@ -150,15 +150,15 @@ func (p *parser) __skipWhitespace() {
 
 func (self *parser) replace_import() {
 	for self.remaining() > 0 {
-		t := self.peekType(lexer.STRING)
+		t := self.peekType(lexer.STRING) // 定位'xxx'字符串
 		if t != nil {
-
 			// make sure it is xxx/xxx but not /xxx/xx
 			if self.path[0] == '/' {
 				self.path = self.path[1:]
 			}
-			strs := strings.Split(self.path, "/")    // full url path without host
-			pkg_name := strings.Split(t.Val, "/")[0] // package name
+			strs := strings.Split(self.path, "/") // full url path without host
+			dirList := strings.Split(t.Val, "/")
+			pkg_name := dirList[0] // package name
 			//fmt.Println("impt", self.in_node_module, pkg_name, t.Line)
 			// only @ and not . will be changed
 			if pkg_name[0] == '@' || pkg_name[0] != '.' {
@@ -221,8 +221,36 @@ func (self *parser) replace_import() {
 					t.Val = ext + "node_modules/" + t.Val
 				}
 
+				// 为以下只提供包名称的补全Jscript路劲 lit-html/lit-html.js
 				if !strings.HasSuffix(t.Val, ".js") {
-					t.Val = t.Val + ".js"
+					cnt := len(dirList)
+					if cnt > 1 && (dirList[cnt-1] == dirList[cnt-2] || (pkg_name[0] == '@' && cnt != 2) || cnt != 2) {
+						// condition match  cnt > 1 && cnt != 2
+						//FROM import 'lit-html/directives/class-map';
+						//TO   import 'lit-html/directives/class-map.js';
+
+						//FROM import 'pushstate-anchor/pushstate-anchor';
+						//TO   import 'pushstate-anchor/pushstate-anchor.js';
+
+						//FROM import '@material/mwc-ripple/ripple-directive';
+						//TO   import '@material/mwc-ripple/ripple-directive.js';
+						t.Val = t.Val + ".js"
+					} else {
+						// condition match pkg_name[0] == '@' && cnt == 2
+						//FROM import '@material/mwc-tab-indicator';
+						//TO   import '@material/mwc-tab-indicator/mwc-tab-indicator.js';
+
+						//FROM import 'lit-html'; #
+						//TO   import 'lit-html/lit-html.js'; #
+						//log.Println(t.Val, dirList[cnt-1])
+						switch dirList[cnt-1] {
+						case "tslib":
+							t.Val = t.Val + "/" + dirList[len(dirList)-1] + ".es6.js"
+						default:
+							t.Val = t.Val + "/" + dirList[len(dirList)-1] + ".js"
+						}
+
+					}
 				}
 			}
 
@@ -241,7 +269,7 @@ func (self *parser) replace_import() {
 
 }
 
-func (self *parser) parse() {
+func (self *parser) parse(keyword string) {
 	if strings.Index(self.path, "node_modules") > -1 {
 		self.in_node_module = true
 	}
@@ -249,35 +277,70 @@ func (self *parser) parse() {
 	//self.skipWhitespace()
 	//t := self.current()
 	//fmt.Println(t.Val)
-	for self.remaining() > 0 {
-		t := self.peek(lexer.IDENT, "import")
-		if t != nil {
-			//TODO 根据精确 import 位置确保无误
-			// test the next token
-			next := self.get(self.pos + 1)
-			if next.Type == lexer.SAPCE {
-				self.replace_import()
+	if keyword == "import" {
+		for self.remaining() > 0 {
+			t := self.peek(lexer.IDENT, keyword)
+			if t != nil {
+				//TODO 根据精确 import 位置确保无误
+				// test the next token
+				next := self.get(self.pos + 1)
+				if next.Type == lexer.SAPCE {
+					self.replace_import()
+				}
+
 			}
 
+			self.next()
 		}
+	}
 
-		self.next()
-	} /*
+	if keyword == "export" {
+		for self.remaining() > 0 {
+			t := self.peek(lexer.IDENT, keyword)
+			if t != nil {
+				for self.remaining() > 0 {
+
+					t := self.peek(lexer.IDENT, "from")
+					if t != nil {
+						//TODO 根据精确 export 位置确保无误
+						// test the next token
+						next := self.get(self.pos + 1)
+						if next.Type == lexer.SAPCE {
+							self.replace_import()
+						}
+					}
+					self.next()
+				}
+			}
+			self.next()
+		}
+	}
+	/*
 		if t.Type == lexer.IDENT && t.Val == "import" {
 			//idx := strings.Index(self.path, self.Root)
 			self.replace_import()
 		}
 	*/
 }
+
 func (self *parser) Parse(input io.Reader) {
 	// new the line scanner
 	scanner := bufio.NewScanner(input)
 	for scanner.Scan() {
 		t := scanner.Text()
 
-		// only resolve the import line
+		// only resolve the import/export line
 		t = strings.TrimLeft(t, " ")
+
+		// confirm keyword
+		keyword := ""
 		if strings.HasPrefix(t, "import") {
+			keyword = "import"
+		} else if strings.HasPrefix(t, "export") {
+			keyword = "export"
+		}
+
+		if len(keyword) != 0 {
 			self.rest()
 			lex, err := lexer.NewLexer(strings.NewReader(t))
 			if err != nil {
@@ -294,7 +357,7 @@ func (self *parser) Parse(input io.Reader) {
 				self.tokens = append(self.tokens, &token)
 				//fmt.Println(lexer.PrintToken(token))
 			}
-			self.parse()
+			self.parse(keyword)
 			self.writeToBuf()
 
 		} else {

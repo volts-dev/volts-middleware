@@ -6,13 +6,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/volts-dev/volts/server"
+	"volts-dev/volts/server"
 )
 
+// TODO add cache
 // root : the dir name of app project
 func PolymerServe(root string, hd *server.TWebHandler) {
 	p := hd.PathParams()
-	ext := p.AsString("ext")
+	ext := p.FieldByName("ext").AsString()
 
 	path := hd.Request().URL.Path
 	file_path := filepath.Join(
@@ -36,7 +37,6 @@ func PolymerServe(root string, hd *server.TWebHandler) {
 		p.SetRoot(root)
 		p.SetPath(path)
 		p.Parse(osfile)
-
 		buf := p.Buffer()
 		http.ServeContent(hd.Response(), hd.Request(), info.Name(), info.ModTime(), bytes.NewReader(buf.Bytes()))
 	} else {

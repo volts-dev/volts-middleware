@@ -46,6 +46,10 @@ func NewEvent() *TEvent {
 	return &TEvent{}
 }
 
+func (self *TEvent) Name() string {
+	return "event"
+}
+
 func (self *TEvent) Request(act interface{}, route *server.TController) {
 	if act != nil {
 		web := route.GetHttpHandler()
