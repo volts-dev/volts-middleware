@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 
+	//"volts-dev/lexer"
 	"github.com/volts-dev/lexer"
 )
 
@@ -332,12 +333,15 @@ func (self *parser) Parse(input io.Reader) {
 		// only resolve the import/export line
 		t = strings.TrimLeft(t, " ")
 
-		// confirm keyword
+		// 检测是否以";"分号结束的标准JS完整行代码,目前不支持多好解析
 		keyword := ""
-		if strings.HasPrefix(t, "import") {
-			keyword = "import"
-		} else if strings.HasPrefix(t, "export") {
-			keyword = "export"
+		if strings.HasSuffix(t, ";") {
+			// confirm keyword
+			if strings.HasPrefix(t, "import") {
+				keyword = "import"
+			} else if strings.HasPrefix(t, "export") {
+				keyword = "export"
+			}
 		}
 
 		if len(keyword) != 0 {
@@ -359,7 +363,6 @@ func (self *parser) Parse(input io.Reader) {
 			}
 			self.parse(keyword)
 			self.writeToBuf()
-
 		} else {
 			self.buffer.WriteString(t + "\n")
 		}
