@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"volts-dev/volts/server"
+	"github.com/volts-dev/volts/server"
 )
 
 // TODO add cache

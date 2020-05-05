@@ -46,7 +46,7 @@ func NewEvent() *TEvent {
 	return &TEvent{}
 }
 
-func (self TEvent) Name() string {
+func (self *TEvent) Name() string {
 	return "event"
 }
 

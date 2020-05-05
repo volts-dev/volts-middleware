@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
 	"strings"
 
 	//"volts-dev/lexer"
@@ -159,6 +160,11 @@ func (self *parser) replace_import() {
 			}
 			strs := strings.Split(self.path, "/") // full url path without host
 			dirList := strings.Split(t.Val, "/")
+			fileExt := path.Ext(dirList[len(dirList)-1])
+			if len(fileExt) == 0 {
+				fileExt = ".js"
+			}
+			//log.Println("fileExt", t.Val, dirList[len(dirList)-1], fileExt)
 			pkg_name := dirList[0] // package name
 			//fmt.Println("impt", self.in_node_module, pkg_name, t.Line)
 			// only @ and not . will be changed
@@ -223,7 +229,8 @@ func (self *parser) replace_import() {
 				}
 
 				// 为以下只提供包名称的补全Jscript路劲 lit-html/lit-html.js
-				if !strings.HasSuffix(t.Val, ".js") {
+				//if !strings.HasSuffix(t.Val, ".js") {
+				if path.Ext(t.Val) == "" {
 					cnt := len(dirList)
 					if cnt > 1 && (dirList[cnt-1] == dirList[cnt-2] || (pkg_name[0] == '@' && cnt != 2) || cnt != 2) {
 						// condition match  cnt > 1 && cnt != 2
@@ -235,7 +242,7 @@ func (self *parser) replace_import() {
 
 						//FROM import '@material/mwc-ripple/ripple-directive';
 						//TO   import '@material/mwc-ripple/ripple-directive.js';
-						t.Val = t.Val + ".js"
+						t.Val = t.Val + fileExt
 					} else {
 						// condition match pkg_name[0] == '@' && cnt == 2
 						//FROM import '@material/mwc-tab-indicator';
@@ -248,7 +255,7 @@ func (self *parser) replace_import() {
 						case "tslib":
 							t.Val = t.Val + "/" + dirList[len(dirList)-1] + ".es6.js"
 						default:
-							t.Val = t.Val + "/" + dirList[len(dirList)-1] + ".js"
+							t.Val = t.Val + "/" + dirList[len(dirList)-1] + fileExt
 						}
 
 					}
@@ -256,8 +263,9 @@ func (self *parser) replace_import() {
 			}
 
 			if pkg_name[0] == '.' {
-				if !strings.HasSuffix(t.Val, ".js") {
-					t.Val = t.Val + ".js"
+				//if !strings.HasSuffix(t.Val, ".js") {
+				if path.Ext(t.Val) == "" {
+					t.Val = t.Val + fileExt
 				}
 			}
 

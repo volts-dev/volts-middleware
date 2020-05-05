@@ -1,13 +1,6 @@
-// Copyright 2015 The Tango Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
 package event
 
 import (
-	//	"bytes"
-	//	"net/http"
-	//	"net/http/httptest"
 	"os"
 	"runtime/pprof"
 	"testing"
@@ -17,29 +10,40 @@ import (
 
 type TAction struct {
 	TEvent
-	//Id string
 }
 
-func (action TAction) Get(hd *server.TWebHandler) {
-	hd.RespondString("Get")
+func (action TAction) index(hd *server.TWebHandler) {
+	hd.Respond([]byte("index"))
 }
 
 func (action TAction) Before(hd *server.TWebHandler) {
-	hd.RespondString("Before")
+	hd.Info("Before")
+	hd.Respond([]byte("Before"))
 }
 
 func (action TAction) After(hd *server.TWebHandler) {
-	hd.Logger.Info("After")
+	hd.Info("After")
+	hd.Respond([]byte("After"))
 }
 
+func (action TAction) Panic(hd *server.TWebHandler) {
+	hd.Info("Panic")
+	hd.Respond([]byte("Panic"))
+}
 func TestSession(t *testing.T) {
 	f, _ := os.Create("profile_file")
 	pprof.StartCPUProfile(f)     // 开始cpu profile，结果写到文件f中
 	defer pprof.StopCPUProfile() // 结束profile
-	r2 := web.NewServer("")
-	r2.Url("/", TAction.Get)
-	r2.RegisterMiddleware(NewEvent())
-	go r2.Listen()
+	srv := server.NewServer()
+	srv.RegisterMiddleware(NewEvent())
+	srv.Url("GET", "/", TAction.index)
 
-	<-make(chan int)
+	// serve as a http server
+	//go func() {
+	err := srv.Listen("http")
+	if err != nil {
+		t.Fatal(err)
+	}
+	//}()
+	//<-make(chan int)
 }

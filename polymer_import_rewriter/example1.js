@@ -13,6 +13,8 @@ import { html, property, query } from 'lit-element';
 import { classMap } from 'lit-html/directives/class-map';
 import { style } from './mwc-tab-css';
 import { __decorate } from "tslib";
+import { style } from './mwc-tab-css.css';
+
 /*测试字符串*/
 export const formStyles = css`
 `;
